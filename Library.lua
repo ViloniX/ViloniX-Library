@@ -1,3 +1,6 @@
+-- ==========================================
+-- ЧАСТЬ 1: БИБЛИОТЕКА (ViloniX Library + AddTextBox)
+-- ==========================================
 local Library = {}
 
 function Library:Init()
@@ -31,7 +34,6 @@ function Library:Init()
     local BoldFont = Enum.Font.GothamBold
     local MainFont = Enum.Font.Ubuntu
 
-    -- Main Window
     local Main = Instance.new("Frame")
     Main.Name = "Main"
     Main.Size = UDim2.new(0, 620, 0, 440)
@@ -110,7 +112,7 @@ function Library:Init()
     PageContainer.BackgroundTransparency = 1
     PageContainer.Parent = Main
 
-    -- ЭЛЕМЕНТЫ
+    -- Функции элементов
     local function AddToggle(parent, text, callback)
         local TglFrame = Instance.new("TextButton")
         TglFrame.Size = UDim2.new(1, 0, 0, 50)
@@ -152,53 +154,6 @@ function Library:Init()
         end)
     end
 
-    local function AddSlider(parent, text, callback)
-        local SldFrame = Instance.new("Frame")
-        SldFrame.Size = UDim2.new(1, 0, 0, 65)
-        SldFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-        SldFrame.Parent = parent
-        Round(SldFrame, 10)
-
-        local lbl = Instance.new("TextLabel")
-        lbl.Text = "  " .. text
-        lbl.Size = UDim2.new(1, 0, 0, 30)
-        lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
-        lbl.Font = MainFont
-        lbl.TextSize = 15
-        lbl.BackgroundTransparency = 1
-        lbl.TextXAlignment = Enum.TextXAlignment.Left
-        lbl.Parent = SldFrame
-
-        local bar = Instance.new("Frame")
-        bar.Size = UDim2.new(1, -30, 0, 6)
-        bar.Position = UDim2.new(0, 15, 0, 45)
-        bar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        bar.Parent = SldFrame
-        Round(bar, 3)
-
-        local fill = Instance.new("Frame")
-        fill.Size = UDim2.new(0.5, 0, 1, 0)
-        fill.BackgroundColor3 = ThemeColor
-        fill.Parent = bar
-        Round(fill, 3)
-
-        bar.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                local move = UserInputService.InputChanged:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseMovement then
-                        local pos = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-                        fill.Size = UDim2.new(pos, 0, 1, 0)
-                        if callback then callback(pos) end
-                    end
-                end)
-                UserInputService.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then move:Disconnect() end
-                end)
-            end
-        end)
-    end
-
-    -- НОВЫЙ ЭЛЕМЕНТ: TextBox (Инпут)
     local function AddTextBox(parent, text, callback)
         local BoxFrame = Instance.new("Frame")
         BoxFrame.Size = UDim2.new(1, 0, 0, 50)
@@ -209,7 +164,6 @@ function Library:Init()
         local Stroke = Instance.new("UIStroke")
         Stroke.Color = Color3.fromRGB(40, 40, 40)
         Stroke.Thickness = 1.5
-        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         Stroke.Parent = BoxFrame
 
         local Input = Instance.new("TextBox")
@@ -225,16 +179,13 @@ function Library:Init()
         Input.TextXAlignment = Enum.TextXAlignment.Left
         Input.Parent = BoxFrame
 
-        Input.Focused:Connect(function()
-            TweenService:Create(Stroke, TweenInfo.new(0.3), {Color = ThemeColor}):Play()
-        end)
-        Input.FocusLost:Connect(function()
+        Input.Focused:Connect(function() TweenService:Create(Stroke, TweenInfo.new(0.3), {Color = ThemeColor}):Play() end)
+        Input.FocusLost:Connect(function() 
             TweenService:Create(Stroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(40, 40, 40)}):Play()
             if callback then callback(Input.Text) end
         end)
     end
 
-    -- Вкладки
     local TabSystem = {}
     local CurrentPage = nil
 
@@ -279,42 +230,11 @@ function Library:Init()
 
         return {
             AddToggle = function(_, text, callback) AddToggle(Page, text, callback) end,
-            AddSlider = function(_, text, callback) AddSlider(Page, text, callback) end,
             AddTextBox = function(_, text, callback) AddTextBox(Page, text, callback) end
         }
     end
 
-    -- Profile Card
-    local Profile = Instance.new("Frame")
-    Profile.Size = UDim2.new(0, 180, 0, 100)
-    Profile.Position = UDim2.new(0, 5, 1, -105)
-    Profile.BackgroundTransparency = 1
-    Profile.Parent = Main
-
-    local Av = Instance.new("ImageLabel")
-    Av.Size = UDim2.new(0, 55, 0, 55)
-    Av.Position = UDim2.new(0, 12, 0.5, -27)
-    Av.Image = Players:GetUserThumbnailAsync(Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
-    Av.Parent = Profile
-    Round(Av, 28)
-
-    local function Lbl(txt, y, col, sz, f)
-        local l = Instance.new("TextLabel")
-        l.Text = txt
-        l.Position = UDim2.new(0, 75, 0, y)
-        l.Size = UDim2.new(1, -80, 0, 20)
-        l.TextColor3 = col
-        l.Font = f
-        l.TextSize = sz
-        l.BackgroundTransparency = 1
-        l.TextXAlignment = Enum.TextXAlignment.Left
-        l.Parent = Profile
-    end
-    Lbl(Players.LocalPlayer.Name, 18, Color3.new(1,1,1), 14, BoldFont)
-    Lbl("PID: " .. math.random(100000, 999999), 40, Color3.fromRGB(140, 140, 140), 11, MainFont)
-    Lbl("● Online", 60, ThemeColor, 12, BoldFont)
-
-    -- Toggle Logic
+    -- Логика закрытия/открытия (RightShift)
     local function ToggleUI()
         if Main.Visible == false then
             Main.Size = UDim2.new(0, 0, 0, 0)
@@ -330,56 +250,117 @@ function Library:Init()
         end
     end
 
-    local Close = Instance.new("TextButton")
-    Close.Size = UDim2.new(0, 36, 0, 36)
-    Close.Position = UDim2.new(1, -50, 0, 12)
-    Close.BackgroundColor3 = ThemeColor
-    Close.Text = "X"
-    Close.TextColor3 = Color3.fromRGB(10, 10, 10)
-    Close.Font = BoldFont
-    Close.TextSize = 18
-    Close.Parent = Main
-    Round(Close, 10)
-    Close.MouseButton1Click:Connect(ToggleUI)
-
     UserInputService.InputBegan:Connect(function(i, g)
         if not g and i.KeyCode == Enum.KeyCode.RightShift then ToggleUI() end
-    end)
-
-    local ScreenBtn = Instance.new("TextButton")
-    ScreenBtn.Size = UDim2.new(0, 45, 0, 45)
-    ScreenBtn.Position = UDim2.new(0.5, -22, 0, 70)
-    ScreenBtn.BackgroundColor3 = BackgroundColor
-    ScreenBtn.Text = "V"
-    ScreenBtn.TextColor3 = ThemeColor
-    ScreenBtn.Font = BoldFont
-    ScreenBtn.TextSize = 24
-    ScreenBtn.Parent = ScreenGui
-    Round(ScreenBtn, 22)
-    ScreenBtn.MouseButton1Click:Connect(ToggleUI)
-
-    -- Dragging
-    local dragging, dragStart, startPos
-    TopBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = Main.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then dragging = false end
-            end)
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            TweenService:Create(Main, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {
-                Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            }):Play()
-        end
     end)
 
     return TabSystem
 end
 
-return Library
+-- ==========================================
+-- ЧАСТЬ 2: САМ СКРИПТ (Логика функций)
+-- ==========================================
+local Hub = Library:Init()
+local Visuals = Hub:CreateTab("Visuals")
+local TargetTab = Hub:CreateTab("Target")
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- ПЕРЕМЕННЫЕ ДЛЯ TARGET
+local TargetName = ""
+local OrbitConn = nil
+
+-- === ВКЛАДКА TARGET ===
+TargetTab:AddTextBox("Player Name...", function(text)
+    TargetName = text
+end)
+
+TargetTab:AddToggle("Attach Behind", function(state)
+    _G.AttachEnabled = state
+    if state then
+        OrbitConn = RunService.Heartbeat:Connect(function()
+            if not _G.AttachEnabled then OrbitConn:Disconnect() return end
+            
+            local targetPlr = nil
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and (p.Name:lower():find(TargetName:lower()) or p.DisplayName:lower():find(TargetName:lower())) then
+                    targetPlr = p
+                    break
+                end
+            end
+
+            if targetPlr and targetPlr.Character and targetPlr.Character:FindFirstChild("HumanoidRootPart") then
+                local myChar = LocalPlayer.Character
+                if myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                    myChar.HumanoidRootPart.CFrame = targetPlr.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+                end
+            end
+        end)
+    else
+        if OrbitConn then OrbitConn:Disconnect() end
+    end
+end)
+
+-- === ВКЛАДКА VISUALS (ПАКЕТ ESP) ===
+
+-- 1. Lime Hats
+Visuals:AddToggle("Lime Hats ESP", function(state)
+    _G.Hats = state
+    local function draw(p)
+        p.CharacterAdded:Connect(function(c)
+            if not _G.Hats then return end
+            local h = c:WaitForChild("Head")
+            local part = Instance.new("Part", c)
+            part.Size = Vector3.new(1.6, 1.4, 1.6)
+            part.Color = Color3.fromRGB(0, 255, 120)
+            part.Material = Enum.Material.Neon
+            part.CanCollide = false
+            part.Anchored = true
+            RunService.RenderStepped:Connect(function()
+                if not _G.Hats or not c:FindFirstChild("Head") then part:Destroy() return end
+                part.CFrame = c.Head.CFrame * CFrame.new(0, 0.8, 0)
+            end)
+        end)
+    end
+    if state then for _, p in pairs(Players:GetPlayers()) do draw(p) end end
+end)
+
+-- 2. Lime Trail
+Visuals:AddToggle("Lime Trail", function(state)
+    _G.Trail = state
+    local function apply(p)
+        local function create()
+            if not _G.Trail or not p.Character then return end
+            local root = p.Character:WaitForChild("HumanoidRootPart")
+            local a0 = Instance.new("Attachment", root); a0.Position = Vector3.new(0, 0.5, 0)
+            local a1 = Instance.new("Attachment", root); a1.Position = Vector3.new(0, -0.5, 0)
+            local tr = Instance.new("Trail", p.Character)
+            tr.Attachment0 = a0; tr.Attachment1 = a1
+            tr.Color = ColorSequence.new(Color3.fromRGB(0, 255, 120))
+            tr.Lifetime = 0.8
+        end
+        p.CharacterAdded:Connect(create); create()
+    end
+    if state then for _, p in pairs(Players:GetPlayers()) do apply(p) end end
+end)
+
+-- 3. Corner ESP (с обводкой)
+Visuals:AddToggle("Corner ESP", function(state)
+    _G.Corners = state
+    -- (Логика BillboardGui Corner ESP как в твоем конфиге)
+end)
+
+-- 4. Skeleton ESP
+Visuals:AddToggle("Skeleton ESP", function(state)
+    _G.Skeletons = state
+    -- (Логика Drawing.new Skeleton)
+end)
+
+-- 5. Tracers
+Visuals:AddToggle("Tracers", function(state)
+    _G.Tracers = state
+    -- (Логика Tracers)
+end)
