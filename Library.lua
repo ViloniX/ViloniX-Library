@@ -110,7 +110,7 @@ function Library:Init()
     PageContainer.BackgroundTransparency = 1
     PageContainer.Parent = Main
 
-    -- Элементы (Твой оригинальный код)
+    -- ЭЛЕМЕНТЫ
     local function AddToggle(parent, text, callback)
         local TglFrame = Instance.new("TextButton")
         TglFrame.Size = UDim2.new(1, 0, 0, 50)
@@ -198,10 +198,47 @@ function Library:Init()
         end)
     end
 
-    -- Вкладки
-    local Tabs = {CurrentPage = nil}
+    -- НОВЫЙ ЭЛЕМЕНТ: TextBox (Инпут)
+    local function AddTextBox(parent, text, callback)
+        local BoxFrame = Instance.new("Frame")
+        BoxFrame.Size = UDim2.new(1, 0, 0, 50)
+        BoxFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+        BoxFrame.Parent = parent
+        Round(BoxFrame, 10)
 
-    function Tabs:CreatePage(name)
+        local Stroke = Instance.new("UIStroke")
+        Stroke.Color = Color3.fromRGB(40, 40, 40)
+        Stroke.Thickness = 1.5
+        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        Stroke.Parent = BoxFrame
+
+        local Input = Instance.new("TextBox")
+        Input.Size = UDim2.new(1, -20, 1, 0)
+        Input.Position = UDim2.new(0, 10, 0, 0)
+        Input.BackgroundTransparency = 1
+        Input.Text = ""
+        Input.PlaceholderText = text
+        Input.PlaceholderColor3 = Color3.fromRGB(100, 100, 100)
+        Input.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Input.Font = MainFont
+        Input.TextSize = 15
+        Input.TextXAlignment = Enum.TextXAlignment.Left
+        Input.Parent = BoxFrame
+
+        Input.Focused:Connect(function()
+            TweenService:Create(Stroke, TweenInfo.new(0.3), {Color = ThemeColor}):Play()
+        end)
+        Input.FocusLost:Connect(function()
+            TweenService:Create(Stroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(40, 40, 40)}):Play()
+            if callback then callback(Input.Text) end
+        end)
+    end
+
+    -- Вкладки
+    local TabSystem = {}
+    local CurrentPage = nil
+
+    function TabSystem:CreateTab(name)
         local Page = Instance.new("ScrollingFrame")
         Page.Size = UDim2.new(1, 0, 1, 0)
         Page.BackgroundTransparency = 1
@@ -213,36 +250,37 @@ function Library:Init()
         local L = Instance.new("UIListLayout")
         L.Padding = UDim.new(0, 10)
         L.Parent = Page
+
+        local Tab = Instance.new("TextButton")
+        Tab.Size = UDim2.new(1, 0, 0, 42)
+        Tab.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+        Tab.Text = name
+        Tab.TextColor3 = Color3.fromRGB(150, 150, 150)
+        Tab.Font = BoldFont
+        Tab.TextSize = 15
+        Tab.Parent = Sidebar
+        Round(Tab, 10)
         
-        local TabBtn = Instance.new("TextButton")
-        TabBtn.Size = UDim2.new(1, 0, 0, 42)
-        TabBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-        TabBtn.Text = name
-        TabBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
-        TabBtn.Font = BoldFont
-        TabBtn.TextSize = 15
-        TabBtn.Parent = Sidebar
-        Round(TabBtn, 10)
-        
-        TabBtn.MouseButton1Click:Connect(function()
-            if Tabs.CurrentPage then Tabs.CurrentPage.Visible = false end
-            Tabs.CurrentPage = Page
+        Tab.MouseButton1Click:Connect(function()
+            if CurrentPage then CurrentPage.Visible = false end
+            CurrentPage = Page 
             Page.Visible = true
             for _, v in pairs(Sidebar:GetChildren()) do
                 if v:IsA("TextButton") then v.TextColor3 = Color3.fromRGB(150, 150, 150) end
             end
-            TabBtn.TextColor3 = ThemeColor
+            Tab.TextColor3 = ThemeColor
         end)
 
-        if not Tabs.CurrentPage then
-            Tabs.CurrentPage = Page
+        if not CurrentPage then
             Page.Visible = true
-            TabBtn.TextColor3 = ThemeColor
+            CurrentPage = Page
+            Tab.TextColor3 = ThemeColor
         end
 
         return {
             AddToggle = function(_, text, callback) AddToggle(Page, text, callback) end,
-            AddSlider = function(_, text, callback) AddSlider(Page, text, callback) end
+            AddSlider = function(_, text, callback) AddSlider(Page, text, callback) end,
+            AddTextBox = function(_, text, callback) AddTextBox(Page, text, callback) end
         }
     end
 
@@ -304,6 +342,10 @@ function Library:Init()
     Round(Close, 10)
     Close.MouseButton1Click:Connect(ToggleUI)
 
+    UserInputService.InputBegan:Connect(function(i, g)
+        if not g and i.KeyCode == Enum.KeyCode.RightShift then ToggleUI() end
+    end)
+
     local ScreenBtn = Instance.new("TextButton")
     ScreenBtn.Size = UDim2.new(0, 45, 0, 45)
     ScreenBtn.Position = UDim2.new(0.5, -22, 0, 70)
@@ -315,10 +357,6 @@ function Library:Init()
     ScreenBtn.Parent = ScreenGui
     Round(ScreenBtn, 22)
     ScreenBtn.MouseButton1Click:Connect(ToggleUI)
-
-    UserInputService.InputBegan:Connect(function(i, g)
-        if not g and i.KeyCode == Enum.KeyCode.RightShift then ToggleUI() end
-    end)
 
     -- Dragging
     local dragging, dragStart, startPos
@@ -341,7 +379,7 @@ function Library:Init()
         end
     end)
 
-    return Tabs
+    return TabSystem
 end
 
 return Library
