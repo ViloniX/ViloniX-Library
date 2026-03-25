@@ -112,20 +112,58 @@ function Library:Init()
         end)
     end
 
-    local function AddTextBox(parent, text, callback)
-        local Box = Instance.new("TextBox", parent)
-        Box.Size = UDim2.new(1, 0, 0, 45)
-        Box.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-        Box.PlaceholderText = text
-        Box.Text = ""
-        Box.Font = MainFont
-        Box.TextSize = 15
-        Box.TextColor3 = Color3.new(1,1,1)
-        Round(Box, 8)
-        
-        Box.FocusLost:Connect(function(enter)
-            if enter then callback(Box.Text) end
+   al function AddDropdown(parent, text, list, callback)
+        local DropFrame = Instance.new("Frame")
+        local IsOpen = false
+        DropFrame.Size = UDim2.new(1, 0, 0, 45)
+        DropFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+        DropFrame.ClipsDescendants = true
+        DropFrame.Parent = parent
+        Round(DropFrame, 10)
+
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, 0, 0, 45)
+        btn.BackgroundTransparency = 1
+        btn.Text = "  " .. text .. " : Select..."
+        btn.Font = MainFont
+        btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+        btn.TextSize = 15
+        btn.TextXAlignment = Enum.TextXAlignment.Left
+        btn.Parent = DropFrame
+
+        local container = Instance.new("Frame")
+        container.Position = UDim2.new(0, 0, 0, 45)
+        container.Size = UDim2.new(1, 0, 0, 0)
+        container.BackgroundTransparency = 1
+        container.Parent = DropFrame
+        local layout = Instance.new("UIListLayout", container)
+
+        btn.MouseButton1Click:Connect(function()
+            IsOpen = not IsOpen
+            TweenService:Create(DropFrame, TweenInfo.new(0.3), {Size = IsOpen and UDim2.new(1, 0, 0, 45 + container.UIListLayout.AbsoluteContentSize.Y) or UDim2.new(1, 0, 0, 45)}):Play()
         end)
+
+        local function refresh()
+            for _, v in pairs(container:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
+            for _, name in pairs(list) do
+                local item = Instance.new("TextButton")
+                item.Size = UDim2.new(1, 0, 0, 30)
+                item.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                item.Text = name
+                item.Font = MainFont
+                item.TextColor3 = Color3.new(1, 1, 1)
+                item.TextSize = 14
+                item.Parent = container
+                item.MouseButton1Click:Connect(function()
+                    btn.Text = "  " .. text .. " : " .. name
+                    IsOpen = false
+                    TweenService:Create(DropFrame, TweenInfo.new(0.3), {Size = UDim2.new(1, 0, 0, 45)}):Play()
+                    callback(name)
+                end)
+            end
+        end
+        refresh()
+        return {Refresh = function(newList) list = newList; refresh() end}
     end
 
     local TabSystem = {}
