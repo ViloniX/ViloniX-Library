@@ -110,7 +110,7 @@ function Library:Init()
     PageContainer.BackgroundTransparency = 1
     PageContainer.Parent = Main
 
-    -- ЭЛЕМЕНТЫ (с сохранением дизайна)
+    -- Функции элементов
     local function AddToggle(parent, text, callback)
         local TglFrame = Instance.new("TextButton")
         TglFrame.Size = UDim2.new(1, 0, 0, 50)
@@ -182,7 +182,6 @@ function Library:Init()
         fill.Parent = bar
         Round(fill, 3)
 
-        -- Логика слайдера (упрощенная для примера)
         bar.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local move = UserInputService.InputChanged:Connect(function(input)
@@ -199,11 +198,11 @@ function Library:Init()
         end)
     end
 
-    -- Вкладки
+    -- Система вкладок
     local TabSystem = {}
     local CurrentPage = nil
 
-    function TabSystem:CreateTab(name)
+    function TabSystem:CreatePage(name)
         local Page = Instance.new("ScrollingFrame")
         Page.Size = UDim2.new(1, 0, 1, 0)
         Page.BackgroundTransparency = 1
@@ -228,12 +227,12 @@ function Library:Init()
         
         Tab.MouseButton1Click:Connect(function()
             if CurrentPage then CurrentPage.Visible = false end
-            CurrentPage = Page 
-            Page.Visible = true
+            CurrentPage = Page p.Visible = true
             for _, v in pairs(Sidebar:GetChildren()) do
                 if v:IsA("TextButton") then v.TextColor3 = Color3.fromRGB(150, 150, 150) end
             end
             Tab.TextColor3 = ThemeColor
+            Page.Visible = true
         end)
 
         if not CurrentPage then
@@ -278,7 +277,7 @@ function Library:Init()
     Lbl("PID: " .. math.random(100000, 999999), 40, Color3.fromRGB(140, 140, 140), 11, MainFont)
     Lbl("● Online", 60, ThemeColor, 12, BoldFont)
 
-    -- Toggle Logic
+    -- Анимация
     local function ToggleUI()
         if Main.Visible == false then
             Main.Size = UDim2.new(0, 0, 0, 0)
@@ -306,10 +305,6 @@ function Library:Init()
     Round(Close, 10)
     Close.MouseButton1Click:Connect(ToggleUI)
 
-    UserInputService.InputBegan:Connect(function(i, g)
-        if not g and i.KeyCode == Enum.KeyCode.RightShift then ToggleUI() end
-    end)
-
     local ScreenBtn = Instance.new("TextButton")
     ScreenBtn.Size = UDim2.new(0, 45, 0, 45)
     ScreenBtn.Position = UDim2.new(0.5, -22, 0, 70)
@@ -321,6 +316,10 @@ function Library:Init()
     ScreenBtn.Parent = ScreenGui
     Round(ScreenBtn, 22)
     ScreenBtn.MouseButton1Click:Connect(ToggleUI)
+
+    UserInputService.InputBegan:Connect(function(i, g)
+        if not g and i.KeyCode == Enum.KeyCode.RightShift then ToggleUI() end
+    end)
 
     -- Dragging
     local dragging, dragStart, startPos
