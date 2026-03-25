@@ -27,18 +27,17 @@ function Library:Init()
         corner.CornerRadius = UDim.new(0, radius)
     end
 
-    -- Main Frame
+    -- Main Window
     local Main = Instance.new("Frame", ScreenGui)
     Main.Name = "Main"
     Main.Size = UDim2.new(0, 620, 0, 440)
     Main.Position = UDim2.new(0.5, 0, 0.5, 0)
     Main.AnchorPoint = Vector2.new(0.5, 0.5)
     Main.BackgroundColor3 = BackgroundColor
-    Main.ClipsDescendants = true
     Main.Visible = false 
     Round(Main, 14)
 
-    -- Твоя оригинальная разметка
+    -- Дизайн (Линии)
     local function Line(pos, size)
         local l = Instance.new("Frame", Main)
         l.BackgroundColor3 = BorderColor; l.BorderSizePixel = 0; l.Position = pos; l.Size = size
@@ -47,12 +46,10 @@ function Library:Init()
     Line(UDim2.new(0, 190, 0, 60), UDim2.new(0, 2, 1, -60))
     Line(UDim2.new(0, 0, 1, -110), UDim2.new(0, 190, 0, 2))
 
-    -- Заголовок
     local Title = Instance.new("TextLabel", Main)
     Title.Text = "ViloniXHub"; Title.Position = UDim2.new(0, 25, 0, 0); Title.Size = UDim2.new(0, 200, 0, 60)
     Title.TextColor3 = ThemeColor; Title.Font = BoldFont; Title.TextSize = 24; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.BackgroundTransparency = 1
 
-    -- Sidebar & Container
     local Sidebar = Instance.new("Frame", Main)
     Sidebar.Position = UDim2.new(0, 15, 0, 75); Sidebar.Size = UDim2.new(0, 160, 0, 240); Sidebar.BackgroundTransparency = 1
     Instance.new("UIListLayout", Sidebar).Padding = UDim.new(0, 8)
@@ -60,15 +57,7 @@ function Library:Init()
     local PageContainer = Instance.new("Frame", Main)
     PageContainer.Position = UDim2.new(0, 210, 0, 80); PageContainer.Size = UDim2.new(1, -230, 1, -100); PageContainer.BackgroundTransparency = 1
 
-    -- Профиль
-    local Profile = Instance.new("Frame", Main)
-    Profile.Size = UDim2.new(0, 180, 0, 100); Profile.Position = UDim2.new(0, 5, 1, -105); Profile.BackgroundTransparency = 1
-    local Av = Instance.new("ImageLabel", Profile)
-    Av.Size = UDim2.new(0, 50, 0, 50); Av.Position = UDim2.new(0, 15, 0.5, -25)
-    Av.Image = Players:GetUserThumbnailAsync(Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
-    Round(Av, 25)
-
-    -- Анимация Toggle
+    -- Анимация
     local function ToggleUI()
         if not Main.Visible then
             Main.Size = UDim2.new(0, 0, 0, 0); Main.Visible = true; Blur.Enabled = true
@@ -81,7 +70,6 @@ function Library:Init()
         end
     end
 
-    -- Кнопка "V" (Мобилки)
     local MobileBtn = Instance.new("TextButton", ScreenGui)
     MobileBtn.Size = UDim2.new(0, 45, 0, 45); MobileBtn.Position = UDim2.new(0.5, -22, 0, 15)
     MobileBtn.BackgroundColor3 = BackgroundColor; MobileBtn.Text = "V"; MobileBtn.TextColor3 = ThemeColor; MobileBtn.Font = BoldFont; MobileBtn.TextSize = 22
@@ -107,14 +95,35 @@ function Library:Init()
         if not PageContainer:FindFirstChildWhichIsA("ScrollingFrame") then Page.Visible = true end
 
         return {
+            -- ВОТ ТВОИ ОРИГИНАЛЬНЫЕ ТОГЛЫ
             AddToggle = function(_, text, callback)
-                local Tgl = Instance.new("TextButton", Page)
-                Tgl.Size = UDim2.new(1, 0, 0, 45); Tgl.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Tgl.Text = "  " .. text
-                Tgl.Font = Enum.Font.Ubuntu; Tgl.TextSize = 16; Tgl.TextColor3 = Color3.new(1,1,1); Tgl.TextXAlignment = Enum.TextXAlignment.Left; Round(Tgl, 8)
+                local TglBtn = Instance.new("TextButton", Page)
+                TglBtn.Size = UDim2.new(1, 0, 0, 50)
+                TglBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+                TglBtn.Text = "  " .. text
+                TglBtn.Font = Enum.Font.Ubuntu
+                TglBtn.TextSize = 16
+                TglBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+                TglBtn.TextXAlignment = Enum.TextXAlignment.Left
+                Round(TglBtn, 10)
+
+                local box = Instance.new("Frame", TglBtn)
+                box.Size = UDim2.new(0, 22, 0, 22)
+                box.Position = UDim2.new(1, -35, 0.5, -11)
+                box.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                Round(box, 6)
+
+                local check = Instance.new("Frame", box)
+                check.Size = UDim2.new(0, 12, 0, 12)
+                check.Position = UDim2.new(0.5, -6, 0.5, -6)
+                check.BackgroundColor3 = ThemeColor
+                check.BackgroundTransparency = 1 -- По умолчанию выключен
+                Round(check, 3)
+
                 local active = false
-                Tgl.MouseButton1Click:Connect(function()
+                TglBtn.MouseButton1Click:Connect(function()
                     active = not active
-                    Tgl.TextColor3 = active and ThemeColor or Color3.new(1,1,1)
+                    TweenService:Create(check, TweenInfo.new(0.2), {BackgroundTransparency = active and 0 or 1}):Play()
                     callback(active)
                 end)
             end
