@@ -156,14 +156,3 @@ function Library:Init()
 
     return TabSystem
 end
-
--- Использование
-local Hub = Library:Init()
-local Visuals = Hub:CreateTab("Visuals")
-
-Visuals:AddToggle("Lime Hats ESP", function(s) _G.HatsEnabled = s end)
-Visuals:AddToggle("Lime Trail ESP", function(s) _G.TrailEnabled = s end)
-Visuals:AddToggle("Lime Tracers ESP", function(s) _G.TracersEnabled = s end)
-Visuals:AddToggle("Corner ESP", function(s) _G.CornersEnabled = s end)
-
-return Library
