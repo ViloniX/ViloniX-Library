@@ -1,14 +1,12 @@
 local Library = {}
 
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
-local Players = game:GetService("Players")
-local Lighting = game:GetService("Lighting")
+function Library:Init()
+    local TweenService = game:GetService("TweenService")
+    local UserInputService = game:GetService("UserInputService")
+    local CoreGui = game:GetService("CoreGui")
+    local Players = game:GetService("Players")
+    local Lighting = game:GetService("Lighting")
 
--- Функция создания окна
-function Library:CreateWindow(hubName)
-    hubName = hubName or "ViloniXHub"
     if CoreGui:FindFirstChild("ViloniXHub") then CoreGui.ViloniXHub:Destroy() end
 
     local ScreenGui = Instance.new("ScreenGui")
@@ -79,7 +77,7 @@ function Library:CreateWindow(hubName)
     local LogoInner = Instance.new("TextLabel")
     LogoInner.Size = UDim2.new(1, 0, 1, 0)
     LogoInner.Rotation = -45
-    LogoInner.Text = hubName:sub(1,1)
+    LogoInner.Text = "V"
     LogoInner.Font = BoldFont
     LogoInner.TextSize = 20
     LogoInner.TextColor3 = ThemeColor
@@ -87,7 +85,7 @@ function Library:CreateWindow(hubName)
     LogoInner.Parent = LogoBase
 
     local Title = Instance.new("TextLabel")
-    Title.Text = hubName
+    Title.Text = "ViloniXHub"
     Title.Position = UDim2.new(0, 70, 0, 0)
     Title.Size = UDim2.new(0, 200, 1, 0)
     Title.TextColor3 = ThemeColor
@@ -111,6 +109,144 @@ function Library:CreateWindow(hubName)
     PageContainer.Size = UDim2.new(1, -230, 1, -100)
     PageContainer.BackgroundTransparency = 1
     PageContainer.Parent = Main
+
+    -- ЭЛЕМЕНТЫ (с сохранением дизайна)
+    local function AddToggle(parent, text, callback)
+        local TglFrame = Instance.new("TextButton")
+        TglFrame.Size = UDim2.new(1, 0, 0, 50)
+        TglFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+        TglFrame.Text = ""
+        TglFrame.Parent = parent
+        Round(TglFrame, 10)
+
+        local lbl = Instance.new("TextLabel")
+        lbl.Text = "  " .. text
+        lbl.Size = UDim2.new(1, -50, 1, 0)
+        lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+        lbl.Font = MainFont
+        lbl.TextSize = 16
+        lbl.BackgroundTransparency = 1
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.Parent = TglFrame
+
+        local box = Instance.new("Frame")
+        box.Size = UDim2.new(0, 22, 0, 22)
+        box.Position = UDim2.new(1, -35, 0.5, -11)
+        box.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        box.Parent = TglFrame
+        Round(box, 6)
+
+        local check = Instance.new("Frame")
+        check.Size = UDim2.new(0, 12, 0, 12)
+        check.Position = UDim2.new(0.5, -6, 0.5, -6)
+        check.BackgroundColor3 = ThemeColor
+        check.BackgroundTransparency = 1
+        check.Parent = box
+        Round(check, 3)
+
+        local active = false
+        TglFrame.MouseButton1Click:Connect(function()
+            active = not active
+            TweenService:Create(check, TweenInfo.new(0.2), {BackgroundTransparency = active and 0 or 1}):Play()
+            if callback then callback(active) end
+        end)
+    end
+
+    local function AddSlider(parent, text, callback)
+        local SldFrame = Instance.new("Frame")
+        SldFrame.Size = UDim2.new(1, 0, 0, 65)
+        SldFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+        SldFrame.Parent = parent
+        Round(SldFrame, 10)
+
+        local lbl = Instance.new("TextLabel")
+        lbl.Text = "  " .. text
+        lbl.Size = UDim2.new(1, 0, 0, 30)
+        lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+        lbl.Font = MainFont
+        lbl.TextSize = 15
+        lbl.BackgroundTransparency = 1
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.Parent = SldFrame
+
+        local bar = Instance.new("Frame")
+        bar.Size = UDim2.new(1, -30, 0, 6)
+        bar.Position = UDim2.new(0, 15, 0, 45)
+        bar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        bar.Parent = SldFrame
+        Round(bar, 3)
+
+        local fill = Instance.new("Frame")
+        fill.Size = UDim2.new(0.5, 0, 1, 0)
+        fill.BackgroundColor3 = ThemeColor
+        fill.Parent = bar
+        Round(fill, 3)
+
+        -- Логика слайдера (упрощенная для примера)
+        bar.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local move = UserInputService.InputChanged:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseMovement then
+                        local pos = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
+                        fill.Size = UDim2.new(pos, 0, 1, 0)
+                        if callback then callback(pos) end
+                    end
+                end)
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then move:Disconnect() end
+                end)
+            end
+        end)
+    end
+
+    -- Вкладки
+    local TabSystem = {}
+    local CurrentPage = nil
+
+    function TabSystem:CreateTab(name)
+        local Page = Instance.new("ScrollingFrame")
+        Page.Size = UDim2.new(1, 0, 1, 0)
+        Page.BackgroundTransparency = 1
+        Page.Visible = false
+        Page.ScrollBarThickness = 0
+        Page.CanvasSize = UDim2.new(0,0,0,0)
+        Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        Page.Parent = PageContainer
+        local L = Instance.new("UIListLayout")
+        L.Padding = UDim.new(0, 10)
+        L.Parent = Page
+
+        local Tab = Instance.new("TextButton")
+        Tab.Size = UDim2.new(1, 0, 0, 42)
+        Tab.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+        Tab.Text = name
+        Tab.TextColor3 = Color3.fromRGB(150, 150, 150)
+        Tab.Font = BoldFont
+        Tab.TextSize = 15
+        Tab.Parent = Sidebar
+        Round(Tab, 10)
+        
+        Tab.MouseButton1Click:Connect(function()
+            if CurrentPage then CurrentPage.Visible = false end
+            CurrentPage = Page 
+            Page.Visible = true
+            for _, v in pairs(Sidebar:GetChildren()) do
+                if v:IsA("TextButton") then v.TextColor3 = Color3.fromRGB(150, 150, 150) end
+            end
+            Tab.TextColor3 = ThemeColor
+        end)
+
+        if not CurrentPage then
+            Page.Visible = true
+            CurrentPage = Page
+            Tab.TextColor3 = ThemeColor
+        end
+
+        return {
+            AddToggle = function(_, text, callback) AddToggle(Page, text, callback) end,
+            AddSlider = function(_, text, callback) AddSlider(Page, text, callback) end
+        }
+    end
 
     -- Profile Card
     local Profile = Instance.new("Frame")
@@ -138,11 +274,11 @@ function Library:CreateWindow(hubName)
         l.TextXAlignment = Enum.TextXAlignment.Left
         l.Parent = Profile
     end
-
     Lbl(Players.LocalPlayer.Name, 18, Color3.new(1,1,1), 14, BoldFont)
     Lbl("PID: " .. math.random(100000, 999999), 40, Color3.fromRGB(140, 140, 140), 11, MainFont)
     Lbl("● Online", 60, ThemeColor, 12, BoldFont)
 
+    -- Toggle Logic
     local function ToggleUI()
         if Main.Visible == false then
             Main.Size = UDim2.new(0, 0, 0, 0)
@@ -170,21 +306,21 @@ function Library:CreateWindow(hubName)
     Round(Close, 10)
     Close.MouseButton1Click:Connect(ToggleUI)
 
+    UserInputService.InputBegan:Connect(function(i, g)
+        if not g and i.KeyCode == Enum.KeyCode.RightShift then ToggleUI() end
+    end)
+
     local ScreenBtn = Instance.new("TextButton")
     ScreenBtn.Size = UDim2.new(0, 45, 0, 45)
     ScreenBtn.Position = UDim2.new(0.5, -22, 0, 70)
     ScreenBtn.BackgroundColor3 = BackgroundColor
-    ScreenBtn.Text = hubName:sub(1,1)
+    ScreenBtn.Text = "V"
     ScreenBtn.TextColor3 = ThemeColor
     ScreenBtn.Font = BoldFont
     ScreenBtn.TextSize = 24
     ScreenBtn.Parent = ScreenGui
     Round(ScreenBtn, 22)
     ScreenBtn.MouseButton1Click:Connect(ToggleUI)
-
-    UserInputService.InputBegan:Connect(function(i, g)
-        if not g and i.KeyCode == Enum.KeyCode.RightShift then ToggleUI() end
-    end)
 
     -- Dragging
     local dragging, dragStart, startPos
@@ -207,154 +343,7 @@ function Library:CreateWindow(hubName)
         end
     end)
 
-    local Tabs = {CurrentPage = nil}
-    function Tabs:CreateTab(name)
-        local Page = Instance.new("ScrollingFrame")
-        Page.Size = UDim2.new(1, 0, 1, 0)
-        Page.BackgroundTransparency = 1
-        Page.Visible = false
-        Page.ScrollBarThickness = 0
-        Page.CanvasSize = UDim2.new(0,0,0,0)
-        Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        Page.Parent = PageContainer
-        local L = Instance.new("UIListLayout")
-        L.Padding = UDim.new(0, 10)
-        L.Parent = Page
-
-        local TabBtn = Instance.new("TextButton")
-        TabBtn.Size = UDim2.new(1, 0, 0, 42)
-        TabBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-        TabBtn.Text = name
-        TabBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
-        TabBtn.Font = BoldFont
-        TabBtn.TextSize = 15
-        TabBtn.Parent = Sidebar
-        Round(TabBtn, 10)
-
-        TabBtn.MouseButton1Click:Connect(function()
-            if Tabs.CurrentPage then Tabs.CurrentPage.Visible = false end
-            Tabs.CurrentPage = Page
-            Page.Visible = true
-            for _, v in pairs(Sidebar:GetChildren()) do
-                if v:IsA("TextButton") then v.TextColor3 = Color3.fromRGB(150, 150, 150) end
-            end
-            TabBtn.TextColor3 = ThemeColor
-        end)
-
-        if not Tabs.CurrentPage then
-            Tabs.CurrentPage = Page
-            Page.Visible = true
-            TabBtn.TextColor3 = ThemeColor
-        end
-
-        local Elements = {}
-
-        function Elements:AddToggle(text, callback)
-            local TglFrame = Instance.new("TextButton")
-            TglFrame.Size = UDim2.new(1, 0, 0, 50)
-            TglFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-            TglFrame.Text = ""
-            TglFrame.Parent = Page
-            Round(TglFrame, 10)
-
-            local lbl = Instance.new("TextLabel")
-            lbl.Text = "  " .. text
-            lbl.Size = UDim2.new(1, -50, 1, 0)
-            lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
-            lbl.Font = MainFont
-            lbl.TextSize = 16
-            lbl.BackgroundTransparency = 1
-            lbl.TextXAlignment = Enum.TextXAlignment.Left
-            lbl.Parent = TglFrame
-
-            local box = Instance.new("Frame")
-            box.Size = UDim2.new(0, 22, 0, 22)
-            box.Position = UDim2.new(1, -35, 0.5, -11)
-            box.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-            box.Parent = TglFrame
-            Round(box, 6)
-
-            local check = Instance.new("Frame")
-            check.Size = UDim2.new(0, 12, 0, 12)
-            check.Position = UDim2.new(0.5, -6, 0.5, -6)
-            check.BackgroundColor3 = ThemeColor
-            check.BackgroundTransparency = 1
-            check.Parent = box
-            Round(check, 3)
-
-            local active = false
-            TglFrame.MouseButton1Click:Connect(function()
-                active = not active
-                TweenService:Create(check, TweenInfo.new(0.2), {BackgroundTransparency = active and 0 or 1}):Play()
-                callback(active)
-            end)
-        end
-
-        function Elements:AddSlider(text, min, max, default, callback)
-            local SldFrame = Instance.new("Frame")
-            SldFrame.Size = UDim2.new(1, 0, 0, 65)
-            SldFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-            SldFrame.Parent = Page
-            Round(SldFrame, 10)
-
-            local lbl = Instance.new("TextLabel")
-            lbl.Text = "  " .. text
-            lbl.Size = UDim2.new(1, 0, 0, 30)
-            lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
-            lbl.Font = MainFont
-            lbl.TextSize = 15
-            lbl.BackgroundTransparency = 1
-            lbl.TextXAlignment = Enum.TextXAlignment.Left
-            lbl.Parent = SldFrame
-
-            local bar = Instance.new("Frame")
-            bar.Size = UDim2.new(1, -30, 0, 6)
-            bar.Position = UDim2.new(0, 15, 0, 45)
-            bar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            bar.Parent = SldFrame
-            Round(bar, 3)
-
-            local fill = Instance.new("Frame")
-            fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-            fill.BackgroundColor3 = ThemeColor
-            fill.Parent = bar
-            Round(fill, 3)
-
-            local isDragging = false
-            local function update()
-                local mousePos = UserInputService:GetMouseLocation().X
-                local barPos = bar.AbsolutePosition.X
-                local barSize = bar.AbsoluteSize.X
-                local percent = math.clamp((mousePos - barPos) / barSize, 0, 1)
-                fill.Size = UDim2.new(percent, 0, 1, 0)
-                local val = math.floor(min + (max - min) * percent)
-                callback(val)
-            end
-
-            bar.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    isDragging = true
-                    update()
-                end
-            end)
-
-            UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    isDragging = false
-                end
-            end)
-
-            UserInputService.InputChanged:Connect(function(input)
-                if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                    update()
-                end
-            end)
-        end
-
-        return Elements
-    end
-
-    return Tabs
+    return TabSystem
 end
 
 return Library
