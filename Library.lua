@@ -110,7 +110,7 @@ function Library:Init()
     PageContainer.BackgroundTransparency = 1
     PageContainer.Parent = Main
 
-    -- Функции элементов
+    -- Элементы (Твой оригинальный код)
     local function AddToggle(parent, text, callback)
         local TglFrame = Instance.new("TextButton")
         TglFrame.Size = UDim2.new(1, 0, 0, 50)
@@ -198,11 +198,10 @@ function Library:Init()
         end)
     end
 
-    -- Система вкладок
-    local TabSystem = {}
-    local CurrentPage = nil
+    -- Вкладки
+    local Tabs = {CurrentPage = nil}
 
-    function TabSystem:CreatePage(name)
+    function Tabs:CreatePage(name)
         local Page = Instance.new("ScrollingFrame")
         Page.Size = UDim2.new(1, 0, 1, 0)
         Page.BackgroundTransparency = 1
@@ -214,31 +213,31 @@ function Library:Init()
         local L = Instance.new("UIListLayout")
         L.Padding = UDim.new(0, 10)
         L.Parent = Page
-
-        local Tab = Instance.new("TextButton")
-        Tab.Size = UDim2.new(1, 0, 0, 42)
-        Tab.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-        Tab.Text = name
-        Tab.TextColor3 = Color3.fromRGB(150, 150, 150)
-        Tab.Font = BoldFont
-        Tab.TextSize = 15
-        Tab.Parent = Sidebar
-        Round(Tab, 10)
         
-        Tab.MouseButton1Click:Connect(function()
-            if CurrentPage then CurrentPage.Visible = false end
-            CurrentPage = Page p.Visible = true
+        local TabBtn = Instance.new("TextButton")
+        TabBtn.Size = UDim2.new(1, 0, 0, 42)
+        TabBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+        TabBtn.Text = name
+        TabBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+        TabBtn.Font = BoldFont
+        TabBtn.TextSize = 15
+        TabBtn.Parent = Sidebar
+        Round(TabBtn, 10)
+        
+        TabBtn.MouseButton1Click:Connect(function()
+            if Tabs.CurrentPage then Tabs.CurrentPage.Visible = false end
+            Tabs.CurrentPage = Page
+            Page.Visible = true
             for _, v in pairs(Sidebar:GetChildren()) do
                 if v:IsA("TextButton") then v.TextColor3 = Color3.fromRGB(150, 150, 150) end
             end
-            Tab.TextColor3 = ThemeColor
-            Page.Visible = true
+            TabBtn.TextColor3 = ThemeColor
         end)
 
-        if not CurrentPage then
+        if not Tabs.CurrentPage then
+            Tabs.CurrentPage = Page
             Page.Visible = true
-            CurrentPage = Page
-            Tab.TextColor3 = ThemeColor
+            TabBtn.TextColor3 = ThemeColor
         end
 
         return {
@@ -277,7 +276,7 @@ function Library:Init()
     Lbl("PID: " .. math.random(100000, 999999), 40, Color3.fromRGB(140, 140, 140), 11, MainFont)
     Lbl("● Online", 60, ThemeColor, 12, BoldFont)
 
-    -- Анимация
+    -- Toggle Logic
     local function ToggleUI()
         if Main.Visible == false then
             Main.Size = UDim2.new(0, 0, 0, 0)
@@ -342,7 +341,7 @@ function Library:Init()
         end
     end)
 
-    return TabSystem
+    return Tabs
 end
 
 return Library
